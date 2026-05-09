@@ -15,11 +15,11 @@ export async function POST(req) {
     const buffer = Buffer.from(bytes);
 
     const filename = Date.now() + '.' + file.name.split(".").pop();
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     const filePath = path.join(uploadDir, filename);
 
     await writeFile(filePath, buffer);
-    const url = `/uploads/${filename}`;
+    const url = `/api/uploads/${filename}`;
 
     return NextResponse.json({ url });
   } catch (error) {
