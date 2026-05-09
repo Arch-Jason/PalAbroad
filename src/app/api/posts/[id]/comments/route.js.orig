@@ -1,6 +1,5 @@
 import dbConnect from '@/lib/dbConnect';
 import Post from '@/models/Post';
-import { sanitize } from '@/lib/sanitize';
 import User from '@/models/User';
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
@@ -26,8 +25,7 @@ export async function POST(req, { params }) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { content, images } = await req.json();
-    const sanitizedContent = sanitize(content);
-    const plainText = sanitizedContent.replace(/<[^>]*>?/gm, '');
+    const plainText = content.replace(/<[^>]*>?/gm, '');
     if (filter.isProfane(plainText)) {
       return NextResponse.json({ error: '评论包含不当词汇。' }, { status: 400 });
     }
@@ -37,7 +35,7 @@ export async function POST(req, { params }) {
 
     post.comments.push({
       author: userId,
-      content: sanitizedContent,
+      content,
       images: images || []
     });
 
