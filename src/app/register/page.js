@@ -1,30 +1,39 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
 import { md5 } from 'js-md5';
 
 export default function Register() {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const fetchCaptcha = async () => {
+    const res = await fetch('/api/captcha');
+    const data = await res.json();
+    setCaptchaSvg(data.image);
+  };
+
   useEffect(() => {
-    loadCaptchaEnginge(6);
+    fetchCaptcha();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateCaptcha(captchaInput)) {
-      alert('验证码错误');
-      return;
-    }
-
     const res = await fetch('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ ...formData, captcha: captchaInput }),
     });
+
+    if (res.ok) {
+      router.push('/posts');
+    } else {
+      const data = await res.json();
+      setError(data.error || '注册失败');
+      fetchCaptcha();
+    }
 
     if (res.ok) {
       router.push('/profile');
@@ -51,7 +60,7 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, password: md5(e.target.value)})} />
           </div>
           <div className="mb-3">
-            <LoadCanvasTemplate />
+             { captchaSvg !== "" && <img src={captchaSvg} onClick={fetchCaptcha} style={{ cursor: 'pointer' }} /> }
             <input type="text" className="form-control mt-2" placeholder="输入验证码" required
               onChange={(e) => setCaptchaInput(e.target.value)} />
           </div>

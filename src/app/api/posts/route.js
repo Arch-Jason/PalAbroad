@@ -54,7 +54,21 @@ export async function POST(req) {
     const userId = await getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { content, tags, images } = await req.json();
+    const { content, tags, images, captcha } = await req.json();
+
+    const captchaToken = req.cookies.get('captcha_token')?.value;
+    if (!captchaToken) {
+      return NextResponse.json({ error: '验证码已过期' }, { status: 400 });
+    }
+
+    try {
+      const decoded = jwt.verify(captchaToken, process.env.JWT_SECRET);
+      if (decoded.text !== captcha) {
+        return NextResponse.json({ error: '验证码错误' }, { status: 400 });
+      }
+    } catch (e) {
+      return NextResponse.json({ error: '验证码验证失败' }, { status: 400 });
+    }
 
     const sanitizedContent = sanitize(content);
     const plainText = sanitizedContent.replace(/<[^>]*>?/gm, '');

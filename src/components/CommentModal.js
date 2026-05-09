@@ -1,10 +1,10 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
-import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
+import 'react-quill-new/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { 
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { 
   ssr: false,
   loading: () => <div className="form-control" style={{height: '100px'}}>编辑器加载中...</div>
 });
@@ -14,12 +14,17 @@ export default function CommentModal({ postId, onClose, onCommentAdded }) {
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
   const fileInputRef = useRef(null);
 
+  const fetchCaptcha = async () => {
+    const res = await fetch('/api/captcha');
+    const data = await res.json();
+    setCaptchaSvg(data.image);
+  };
+
   useEffect(() => {
-    setTimeout(() => {
-      loadCaptchaEnginge(6, 'transparent', 'black', 'small');
-    }, 100);
+    fetchCaptcha();
   }, []);
 
   const handleImageUpload = async (e) => {
@@ -54,16 +59,12 @@ export default function CommentModal({ postId, onClose, onCommentAdded }) {
       return;
     }
 
-    if (!validateCaptcha(captchaInput)) {
-      alert('验证码错误');
-      return;
-    }
-
     const res = await fetch(`/api/posts/${postId}/comments`, {
       method: 'POST',
       body: JSON.stringify({
         content,
-        images: imageUrl ? [imageUrl] : []
+        images: imageUrl ? [imageUrl] : [],
+        captcha: captchaInput
       }),
     });
 
@@ -106,9 +107,7 @@ export default function CommentModal({ postId, onClose, onCommentAdded }) {
             </div>
             <div className="row g-2 align-items-center">
               <div className="col-md-6">
-                <LoadCanvasTemplate />
-              </div>
-              <div className="col-md-6">
+                { captchaSvg !== "" && <img src={captchaSvg} onClick={fetchCaptcha} style={{ cursor: 'pointer' }} /> }
                 <input type="text" className="form-control" placeholder="输入验证码" 
                   value={captchaInput} onChange={e => setCaptchaInput(e.target.value)} />
               </div>

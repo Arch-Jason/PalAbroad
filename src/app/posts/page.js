@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import CommentModal from '@/components/CommentModal';
 import PostModal from '@/components/PostModal';
 import { MessageSquare } from 'lucide-react';
@@ -103,7 +103,7 @@ export default function Posts() {
                 {post.comments.map((comment, idx) => (
                   <div key={idx} className="mb-2 p-2 bg-light rounded small">
                     <div className="d-flex align-items-center mb-1">
-                      <img src={comment.author?.avatar || 'https://via.placeholder.com/30'} className="rounded-circle me-2" style={{width:'24px', height:'24px', objectFit:'cover'}} alt="c-avatar" />
+                      <img src={comment.author?.avatar || '/uploads/akari.jpeg'} className="rounded-circle me-2" style={{width:'24px', height:'24px', objectFit:'cover'}} alt="c-avatar" />
                       <span className="fw-bold">{comment.author?.username}</span>
                       <span className="text-muted ms-2" style={{fontSize: '10px'}}>{new Date(comment.createdAt).toLocaleString()}</span>
                     </div>

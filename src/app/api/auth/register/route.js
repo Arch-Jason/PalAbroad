@@ -8,8 +8,19 @@ export async function POST(req) {
     await dbConnect();
     const { username, password, captcha } = await req.json();
 
-    // Note: In a real app, verify captcha here using the logic from react-simple-captcha
-    // For this boilerplate, we assume captcha is handled on frontend or basic validation.
+    const captchaToken = req.cookies.get('captcha_token')?.value;
+    if (!captchaToken) {
+      return NextResponse.json({ error: '验证码已过期' }, { status: 400 });
+    }
+
+    try {
+      const decoded = jwt.verify(captchaToken, process.env.JWT_SECRET);
+      if (decoded.text !== captcha) {
+        return NextResponse.json({ error: '验证码错误' }, { status: 400 });
+      }
+    } catch (e) {
+      return NextResponse.json({ error: '验证码验证失败' }, { status: 400 });
+    }
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
