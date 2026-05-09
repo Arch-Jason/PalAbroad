@@ -5,6 +5,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import CommentModal from '@/components/CommentModal';
 import PostModal from '@/components/PostModal';
 import { MessageSquare } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Posts() {
   const [posts, setPosts] = useState([]);
@@ -13,6 +14,7 @@ export default function Posts() {
   const [activeTag, setActiveTag] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
+  const router = useRouter();
 
   const fetchPosts = async (params = {}) => {
     const query = new URLSearchParams(params).toString();
@@ -64,7 +66,12 @@ export default function Posts() {
                 onClick={() => quickFilter(t)}>{t}</button>
             ))}
           </div>
-          <button className="btn btn-primary" onClick={() => setShowPostModal(true)}>发布新动态</button>
+          <button className="btn btn-primary" onClick={() => {
+            if (typeof user.username === 'undefined')
+              router.push('/login');
+            else
+              setShowPostModal(true);
+          }}>发布新动态</button>
         </div>
 
         {posts.map(post => (
@@ -92,7 +99,12 @@ export default function Posts() {
                 <span>{new Date(post.createdAt).toLocaleString()}</span>
                 <span className="ms-3">{post.author?.currentCity}</span>
               </div>
-              <button className="btn btn-link btn-sm text-decoration-none p-0 d-flex align-items-center" onClick={() => setSelectedPostId(post._id)}>
+              <button className="btn btn-link btn-sm text-decoration-none p-0 d-flex align-items-center" onClick={() => {
+                if (typeof user.username === 'undefined')
+                  router.push('/login');
+                else
+                  setSelectedPostId(post._id);
+              }}>
                 <MessageSquare size={16} className="me-1" />
                 <span>评论 ({post.comments?.length || 0})</span>
               </button>
